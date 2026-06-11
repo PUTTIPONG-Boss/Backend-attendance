@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"time"
 
@@ -11,12 +12,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-)
-
-const (
-	officeLatitude  = 13.7563
-	officeLongitude = 100.5018
-	maxRadiusMeters = 200.0
 )
 
 var allowedSessions = map[string]bool{
@@ -47,10 +42,15 @@ func ClockIn(req models.ClockInRequest) (*models.AttendanceLog, error) {
 		return nil, errors.New("invalid session: must be morning, lunch, afternoon, or evening")
 	}
 
-	distance := haversine(req.Latitude, req.Longitude, officeLatitude, officeLongitude)
+	office, err := GetOfficeSettings()
+	if err != nil {
+		return nil, errors.New("failed to load office settings")
+	}
 
-	if distance > maxRadiusMeters {
-		return nil, errors.New("Access denied: You are outside the 200-meter radius.")
+	distance := haversine(req.Latitude, req.Longitude, office.Latitude, office.Longitude)
+
+	if distance > office.RadiusMeters {
+		return nil, fmt.Errorf("Access denied: You are outside the %.0f-meter radius.", office.RadiusMeters)
 	}
 
 	entry := &models.AttendanceLog{
