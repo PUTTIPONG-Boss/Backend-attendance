@@ -1,0 +1,32 @@
+version: '3'
+
+vars:
+  BINARY_NAME: attendance-backend
+
+tasks:
+  deps:
+    desc: Check and download required Go modules
+    cmds:
+      - echo "Checking and installing dependencies..."
+      - go mod tidy
+
+  dev:
+    desc: Install dependencies and run the backend application
+    deps: [deps]
+    cmds:
+      - echo "Starting Backend Server..."
+      - go run cmd/main.go
+    sources:
+      - "**/*.go"
+
+  build:
+    desc: Build the application binary
+    deps: [deps]
+    cmds:
+      - echo "Building binary for production..."
+      - GOOS=linux GOARCH=amd64 go build -o bin/{{.BINARY_NAME}} cmd/main.go
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin/

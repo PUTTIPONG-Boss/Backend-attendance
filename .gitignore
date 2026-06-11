@@ -1,0 +1,14 @@
+# Environment
+.env
+
+# Binary output
+bin/
+
+# Go build cache
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
